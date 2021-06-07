@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import numpy as np
-
+import os
 from scipy.io import loadmat
 from scipy.optimize import minimize
 from scipy.special import polygamma
@@ -11,6 +11,7 @@ from geomstats.geometry.dirichlet_distributions import DirichletDistributions
 
 # flake8: noqa
 
+PATH2PARTIALRESULTS = "./partial_6class_100documents"
 
 def cost_fun(param, point_start, point_end, n_times):
     """Computes the length of the parameterized curve t -> (x_1(t),...,x_n(t))
@@ -88,7 +89,7 @@ def cost_jacobian(param, point_start, point_end, n_times):
     return res.T.reshape(dim * (degree-1))
 
 
-def approx_distance(ind_tuple):
+def approx_distance(ind_tuple, path2partialresults=PATH2PARTIALRESULTS):
   """Computes distance between 20NewsGroups documents.
 
   Estimates Fisher-Rao distance between Dirichlet parameters of documents
@@ -120,50 +121,47 @@ def approx_distance(ind_tuple):
   polyn_velocity = res[3]
   polyn_vnorm = res[4]**(1/2)
   max_var = (np.max(polyn_vnorm) - np.min(polyn_vnorm)) / np.mean(polyn_vnorm)
+  path = os.path.join(path2partialresults, "./{}_{}_polyn_dist.txt".format(i, j))
+  with open(path, 'w') as f:
+    f.write(str(polyn_dist))
+  path = os.path.join(path2partialresults, "./{}_{}_max_var.txt".format(i, j))
+  with open(path, 'w') as f:
+    f.write(str(max_var))
+  return 0
 
-  return polyn_dist, max_var
-
+def check_computed_pairs(path2partialresults="./temp"):
+  l = os.listdir(path2partialresults)
+  d1 = {}
+  computed_pairs = {}
+  for v in l:
+    if v.endswith("polyn_dist.txt") or v.endswith("max_var.txt"):
+      i, j, ignore1, ignore1 = v.split("_")
+      if (i, j) in d1:
+        computed_pairs[(int(i), int(j))] = 1
+      d1[(i, j)] = 1
+  return computed_pairs
 
 # Load all documents and their Dirichlet parameters
 np.set_printoptions(suppress=True)
-data = loadmat('examples/gamma_10.mat') ###### A REMPLACER
-all_points = data['gamma10']
-newsgroups = fetch_20newsgroups()
-
-# Concentrate on a few classes
-n_classes = 20
-n_per_class = 100
-indices = []
-labels = []
-for i in range(n_classes):
-    indices_class_i = np.nonzero(newsgroups['target']==i)[0]
-    indices.append(indices_class_i[:n_per_class])
-    labels.append(i * np.ones(n_per_class))
-indices = np.hstack(indices)
-labels = np.hstack(labels)
-labels = labels[np.argsort(indices)]
-indices = np.sort(indices)
-points = all_points[indices]
+points = np.load("./gamma15.npy") ### Load the matrix
 
 # Set parameters for the computation of distances between documents
 degree = 6
 method = None
 n_times = 500
 
+if not os.path.exists(PATH2PARTIALRESULTS):
+    os.makedirs(PATH2PARTIALRESULTS)
+# Check if some values have already been computed
+computed_pairs = check_computed_pairs(PATH2PARTIALRESULTS)
 # Compute the matrix of geodesic distances between documents
-n_points = n_classes * n_per_class
+n_points = points.shape[0]
 ind_list = []
 for i in range(n_points):
-    ind_list += [(i, j) for j in range(i+1, n_points)]
+  for j in range(i+1, n_points):
+    if not (i, j) in computed_pairs:
+      ind_list.append((i, j))
 
-pool = mp.Pool(mp.cpu_count())
+nb_cpu = 30
+pool = mp.Pool(nb_cpu)
 results = pool.map(approx_distance, [ind_tuple for ind_tuple in ind_list])
-
-dist_polyn = np.zeros((n_points, n_points))
-max_var_polyn = np.zeros((n_points, n_points))
-counter = 0
-for ind_tuple in ind_list:
-  i, j = ind_tuple
-  dist_polyn[i, j] = results[counter][0]
-  max_var_polyn[i, j] = results[counter][1]
-  counter += 1

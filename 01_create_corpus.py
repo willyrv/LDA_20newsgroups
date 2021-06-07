@@ -8,13 +8,13 @@ import numpy as np
 import pandas as pd
 from gensim.corpora import Dictionary
 
-PATH2CORPUS = "./20newsgroup_corpus_gensim_5classes_1000docs.pickle"
-PATH2DICTIONARY = "./dictionary_20newsgroups_5classes_1000docs.pickle"
+PATH2CORPUS = "./20newsgroup_corpus_gensim_6classes_600docs.pickle"
+PATH2DICTIONARY = "./dictionary_20newsgroups_6classes_600docs.pickle"
 
 newsgroups = fetch_20newsgroups()
 nltk.download('stopwords')
-targets_to_keep = [0, 1, 2, 13, 15]
-nb_of_documents_class = 200
+targets_to_keep = [1, 2, 7, 8, 13, 14]
+nb_of_documents_class = 100
 
 data = pd.DataFrame({"text":newsgroups.data, "target": newsgroups.target})
 corpus_5classes = data[data["target"].isin(targets_to_keep)]
@@ -53,5 +53,6 @@ with open(PATH2CORPUS, 'wb') as f:
 with open(PATH2DICTIONARY, 'wb') as f:
     pickle.dump(dictionary, f)
 
-corpus_5classes_1000docs.to_csv("./20newsgroup_corpus_5classes_1000docs.csv")
+# Save the text documents
+corpus_5classes_1000docs.to_csv("./20newsgroup_corpus_6classes_600docs.csv")
 

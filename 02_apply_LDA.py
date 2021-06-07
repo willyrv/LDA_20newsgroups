@@ -2,6 +2,8 @@ import pickle
 import numpy as np
 from gensim.models import LdaMulticore
 
+PATH2CORPUS = "./20newsgroup_corpus_gensim_6classes_600docs.pickle"
+PATH2DICTIONARY = "./dictionary_20newsgroups_6classes_600docs.pickle"
 
 def get_theta_matrix(ldaModel, corpus):
     """
@@ -18,9 +20,6 @@ def get_theta_matrix(ldaModel, corpus):
         for t in l:
             theta[i, t[0]] = t[1]
     return theta
-
-PATH2CORPUS = "./20newsgroup_corpus_gensim_5classes_1000docs.pickle"
-PATH2DICTIONARY = "./dictionary_20newsgroups_5classes_1000docs.pickle"
 
 # Load the dataset
 with open(PATH2CORPUS, 'rb') as f:
