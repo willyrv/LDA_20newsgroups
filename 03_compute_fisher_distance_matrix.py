@@ -11,7 +11,8 @@ from geomstats.geometry.dirichlet_distributions import DirichletDistributions
 
 # flake8: noqa
 
-PATH2PARTIALRESULTS = "./partial_6class_100documents"
+PATH2PARTIALRESULTS = "./partial_0-1-2-15_35"
+PATH2GAMMA = "./gamma10_0-1-2-15_35.npy"
 
 def cost_fun(param, point_start, point_end, n_times):
     """Computes the length of the parameterized curve t -> (x_1(t),...,x_n(t))
@@ -143,7 +144,7 @@ def check_computed_pairs(path2partialresults="./temp"):
 
 # Load all documents and their Dirichlet parameters
 np.set_printoptions(suppress=True)
-points = np.load("./gamma15.npy") ### Load the matrix
+points = np.load(PATH2GAMMA) ### Load the matrix
 
 # Set parameters for the computation of distances between documents
 degree = 6

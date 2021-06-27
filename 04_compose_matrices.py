@@ -3,8 +3,8 @@ import os
 import h5py
 from numpy.core.fromnumeric import size
 
-path2partialresults = "./partial_6class_100documents"
-n_points = 600
+path2partialresults = "./partial_0-1-2-15_35"
+n_points = 140
 
 # Create the files
 with h5py.File("./distances_matrix.hdf5", "w") as f:
